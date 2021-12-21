@@ -11,31 +11,23 @@ let data =
     |> Array.map (Helpers.split "," >> Array.map (fun s -> s.Trim()))
     |> Array.map (fun [|d1;d2;d3;d4|] -> (int d1, int d2),(int d3, int d4))
 
-let render data' until =
-    let rec f data i =
-        if (i = until) then
+let render data' =
+    let rec f data lastDist =        
+        let newData =
+            data
+            |> Array.map (fun ((x,y),(vx,vy)) -> (x+vx,y+vy),(vx,vy))
+
+        let (xmin,xmax,ymin,ymax) = Helpers.getMinMax newData
+        let dist = xmax-xmin+ymax-ymin
+        
+        if (dist > lastDist) then
             data
         else
-            let newData =
-                data
-                |> Array.map (fun ((x,y),(vx,vy)) -> (x+vx,y+vy),(vx,vy))
-
-            if (i % 200 = 0 || i > 10600) then
-                let togetherNess =
-                    let k = newData |> Array.map fst
-                    Array.allPairs k k
-                    |> Array.map (fun ((x,y),(x',y')) -> abs (x-x') + abs (y-y'))
-                    |> Array.max
-
-                printfn "%i %i" i togetherNess
-
-            //printfn "%i %A" i (Helpers.getMinMax newData)
-
-            f newData (i+1)
+            f newData dist
     
-    f data' 0
+    f data' Int32.MaxValue
 
-let test = render data 10630
+let test = render data
     
 let keys =
     test
